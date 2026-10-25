@@ -1,0 +1,114 @@
+<%- include('partials/header', { title: 'Übersicht' }) %>
+
+<div class="dashboard-head">
+  <div>
+    <h1>Stack-Backups</h1>
+    <div class="dashboard-stats">
+      Stacks aus <span class="mono"><%= stacksDir %></span> · Backups laut <span class="mono"><%= crontabPath %></span>
+    </div>
+  </div>
+</div>
+
+<% errors.forEach(function(msg) { %>
+  <div class="alert alert-error alert-wide"><%- include('partials/icon', { name: 'unplug' }) %><span><%= msg %></span></div>
+<% }) %>
+
+<% if (autoReset.length > 0) { %>
+  <div class="alert alert-success alert-wide">
+    <%- include('partials/icon', { name: 'check-circle-2' }) %>
+    <span>Wird jetzt gesichert, Ausnahme „kein Backup nötig“ wurde automatisch entfernt: <span class="mono"><%= autoReset.join(', ') %></span></span>
+  </div>
+<% } %>
+
+<% if (orphanedEntries.length > 0) { %>
+  <div class="alert alert-warning alert-wide">
+    <%- include('partials/icon', { name: 'triangle-alert' }) %>
+    <div>
+      Backup-Einträge in der Crontab ohne passenden Stack (Tippfehler, umbenannt oder gelöscht?):
+      <ul>
+        <% orphanedEntries.forEach(function(e) { %>
+          <li><span class="mono"><%= e.stackPath %></span></li>
+        <% }) %>
+      </ul>
+    </div>
+  </div>
+<% } %>
+
+<div class="stat-grid">
+  <div class="stat-tile">
+    <div class="stat-label"><%- include('partials/icon', { name: 'layers' }) %>Stacks</div>
+    <div class="stat-value"><%= counts.total %></div>
+  </div>
+  <div class="stat-tile is-success">
+    <div class="stat-label"><%- include('partials/icon', { name: 'check-circle-2' }) %>Gesichert</div>
+    <div class="stat-value"><%= counts.backed_up %></div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label"><%- include('partials/icon', { name: 'eye-off' }) %>Kein Backup nötig</div>
+    <div class="stat-value"><%= counts.excluded %></div>
+  </div>
+  <div class="stat-tile<%= counts.pending > 0 ? ' is-pending' : '' %>">
+    <div class="stat-label"><%- include('partials/icon', { name: 'circle-help' }) %>Offen</div>
+    <div class="stat-value"><%= counts.pending %></div>
+  </div>
+</div>
+
+<% if (stacks.length === 0) { %>
+  <div class="empty-state">
+    <span class="icon-chip"><%- include('partials/icon', { name: 'layers' }) %></span>
+    <div class="empty-state-title">Keine Stacks gefunden</div>
+    <div class="empty-state-text">Im Stacks-Verzeichnis liegt kein Unterordner mit einer compose.yaml / docker-compose.yml. Ist das Verzeichnis richtig gemountet?</div>
+  </div>
+<% } else { %>
+  <div class="stack-table-wrap">
+    <div class="stack-table-head">
+      <div>Stack</div><div class="col-status">Status</div><div>Zeitplan</div><div class="col-actions">Aktion</div>
+    </div>
+    <% stacks.forEach(function(s) { %>
+      <div class="stack-row<%= s.status === 'pending' ? ' is-pending' : '' %>">
+        <div>
+          <div class="stack-name"><%= s.name %></div>
+          <div class="stack-path"><%= stacksDir %>/<%= s.name %></div>
+        </div>
+
+        <div class="col-status">
+          <% if (s.status === 'backed_up') { %>
+            <span class="badge badge-active"><%- include('partials/icon', { name: 'check-circle-2' }) %>gesichert</span>
+          <% } else if (s.status === 'excluded') { %>
+            <span class="badge badge-none"><%- include('partials/icon', { name: 'eye-off' }) %>kein Backup nötig</span>
+          <% } else { %>
+            <span class="badge badge-pending"><%- include('partials/icon', { name: 'circle-help' }) %>Entscheidung offen</span>
+          <% } %>
+        </div>
+
+        <div>
+          <% if (s.status === 'backed_up') { %>
+            <% s.schedules.forEach(function(sched) { %>
+              <div class="schedule"><%- include('partials/icon', { name: 'calendar-clock' }) %> <%= sched %></div>
+            <% }) %>
+          <% } else if (s.status === 'excluded') { %>
+            <span class="schedule-none">seit <%= new Date(s.excludedAt).toLocaleDateString('de-DE') %></span>
+          <% } else { %>
+            <span class="schedule-none">–</span>
+          <% } %>
+        </div>
+
+        <div class="col-actions">
+          <% if (s.status === 'pending') { %>
+            <form method="POST" action="/stacks/<%= encodeURIComponent(s.name) %>/exclude" class="inline-form">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="button-secondary"><%- include('partials/icon', { name: 'eye-off' }) %>Kein Backup nötig</button>
+            </form>
+          <% } else if (s.status === 'excluded') { %>
+            <form method="POST" action="/stacks/<%= encodeURIComponent(s.name) %>/include" class="inline-form">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="icon-button" title="Zurücknehmen"><%- include('partials/icon', { name: 'undo-2' }) %></button>
+            </form>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

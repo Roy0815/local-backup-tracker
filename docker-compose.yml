@@ -1,0 +1,33 @@
+services:
+  local-backup-tracker:
+    build: .
+    container_name: local-backup-tracker
+    restart: unless-stopped
+    #ports:
+    #  - "3000:3000"
+    environment:
+      # --- runtime ---
+      - PORT=${PORT:-3000}
+      - PUID=${PUID}
+      - PGID=${PGID}
+
+      # --- what to scan ---
+      # Host path of the stacks dir, exactly as it appears in the crontab lines.
+      - HOST_STACKS_DIR=${HOST_STACKS_DIR}
+      - BACKUP_SCRIPT_NAME=${BACKUP_SCRIPT_NAME:-docker-stack-backup.sh}
+
+      # --- Homepage API (/api/status) ---
+      - API_KEY=${API_KEY}
+    volumes:
+      - ./data:/app/data
+      # Same host path as HOST_STACKS_DIR, read-only.
+      - ${HOST_STACKS_DIR}:/stacks:ro
+      # Directory, not a single file: editors replace files (new inode), and a
+      # single-file bind mount would keep showing the old content. See README.
+      - ${CRON_DIR:-/etc/cron.d}:/config/cron.d:ro
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

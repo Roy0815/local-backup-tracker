@@ -1,0 +1,10 @@
+<%- include('partials/header', { title: 'Fehler' }) %>
+
+<div class="error-card">
+  <span class="icon-chip icon-chip-danger" style="margin-bottom:1rem"><%- include('partials/icon', { name: 'unplug' }) %></span>
+  <h1>Das hat nicht funktioniert</h1>
+  <p class="hint" style="margin-bottom:1.4rem"><%= message %></p>
+  <a href="/" class="button-secondary"><%- include('partials/icon', { name: 'arrow-left' }) %>Zur Übersicht</a>
+</div>
+
+<%- include('partials/footer') %>
