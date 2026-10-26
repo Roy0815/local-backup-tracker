@@ -394,7 +394,9 @@ input[type="password"] {
 .stack-table-wrap {
   display: grid;
   grid-template-columns: 1.5fr 1.1fr 1.4fr auto;
-  align-items: center;
+  /* stretch, not center: cells fill the full row height so a row tint
+     (.is-pending) has no gaps; content is centered inside each cell. */
+  align-items: stretch;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -417,6 +419,10 @@ input[type="password"] {
 }
 
 .stack-row > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
   padding-top: 0.9rem;
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--divider);
@@ -427,8 +433,9 @@ input[type="password"] {
 .stack-table-head > div:last-child, .stack-row > div:last-child { padding-right: 1.1rem; }
 .stack-table-head > div:not(:last-child), .stack-row > div:not(:last-child) { padding-right: 1rem; }
 
-.stack-row .col-actions { display: flex; gap: 0.45rem; justify-content: flex-end; flex-wrap: wrap; }
+.stack-row .col-actions { flex-direction: row; gap: 0.45rem; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
 .col-status { text-align: center; }
+.stack-row > .col-status { align-items: center; }
 
 .stack-name { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.15rem; }
 .stack-path { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); }
@@ -445,7 +452,7 @@ input[type="password"] {
   }
   .stack-row:last-of-type { border-bottom: none; }
   .stack-row > div { padding: 0; border-bottom: none; }
-  .stack-row .col-status { text-align: left; }
+  .stack-row .col-status { text-align: left; align-items: flex-start; }
   .stack-row .col-actions { justify-content: flex-start; }
 }
 
