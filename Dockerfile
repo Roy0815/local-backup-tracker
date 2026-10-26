@@ -1,7 +1,7 @@
 # --- builder ---------------------------------------------------------------
 # argon2 is a native addon (node-gyp); build it here so the runtime image
 # doesn't need a C toolchain at all.
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 
 RUN apk add --no-cache python3 make g++
 
@@ -10,7 +10,7 @@ COPY package.json package-lock.json* ./
 RUN npm install --omit=dev
 
 # --- runtime -----------------------------------------------------------------
-FROM node:22-alpine
+FROM node:26-alpine
 
 # su-exec: drops from root to the PUID/PGID user before starting node,
 # linuxserver.io-style, so the bind-mounted ./data ends up owned by the
