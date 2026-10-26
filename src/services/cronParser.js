@@ -1,6 +1,7 @@
 'use strict';
 
 const fsp = require('fs').promises;
+const path = require('path');
 
 // Pure parsing — no knowledge of which stacks exist. stackStatus.js matches
 // the extracted paths against the scanned stacks directory.
