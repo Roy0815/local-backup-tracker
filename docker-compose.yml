@@ -15,6 +15,9 @@ services:
       # Host path of the stacks dir, exactly as it appears in the crontab lines.
       - HOST_STACKS_DIR=${HOST_STACKS_DIR}
       - BACKUP_SCRIPT_NAME=${BACKUP_SCRIPT_NAME:-docker-stack-backup.sh}
+      # The one file inside CRON_DIR that holds the backup lines; nothing else
+      # in that directory is read.
+      - CRONTAB_PATH=/config/cron.d/${CRON_FILE:-docker-stack-backup}
 
       # --- Homepage API (/api/status) ---
       - API_KEY=${API_KEY}

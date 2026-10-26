@@ -31,9 +31,9 @@ module.exports = {
   // lines contain. Optional: without it, cron entries are matched to stacks
   // by their last path segment only.
   HOST_STACKS_DIR: normalizeDir(process.env.HOST_STACKS_DIR || ''),
-  // A single crontab file, or a directory whose files are all read (e.g. a
-  // mounted /etc/cron.d).
-  CRONTAB_PATH: process.env.CRONTAB_PATH || '/config/cron.d',
+  // The one crontab file with the backup lines. Its *directory* is mounted
+  // (see docker-compose.yml), but only this file is read.
+  CRONTAB_PATH: process.env.CRONTAB_PATH || '/config/cron.d/docker-stack-backup',
   BACKUP_SCRIPT_NAME: process.env.BACKUP_SCRIPT_NAME || 'docker-stack-backup.sh',
 
   // Required for /api/status. Unset → the API answers 503 instead of being

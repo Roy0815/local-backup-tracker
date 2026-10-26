@@ -1,8 +1,6 @@
 'use strict';
 
-const fs = require('fs');
-const fsp = fs.promises;
-const path = require('path');
+const fsp = require('fs').promises;
 
 // Pure parsing — no knowledge of which stacks exist. stackStatus.js matches
 // the extracted paths against the scanned stacks directory.
@@ -53,32 +51,15 @@ function parseCrontab(text, scriptName) {
 }
 
 /**
- * Reads CRONTAB_PATH (a file, or a directory of crontab files such as a
- * mounted /etc/cron.d) and returns all backup entries found. Throws if the
- * path can't be read — the caller must surface that, since "can't read the
- * crontab" would otherwise look exactly like "nothing is backed up".
+ * Reads the single crontab file CRONTAB_PATH and returns all backup entries
+ * found. Only this one file is read — other files next to it (the rest of a
+ * mounted /etc/cron.d) are irrelevant and may well be root-only. Throws if
+ * the file can't be read — the caller must surface that, since "can't read
+ * the crontab" would otherwise look exactly like "nothing is backed up".
  */
 async function readBackupEntries(crontabPath, scriptName) {
-  const stat = await fsp.stat(crontabPath);
-  const files = [];
-  if (stat.isDirectory()) {
-    const names = (await fsp.readdir(crontabPath)).filter((n) => !n.startsWith('.')).sort();
-    for (const name of names) {
-      const full = path.join(crontabPath, name);
-      if ((await fsp.stat(full)).isFile()) files.push(full);
-    }
-  } else {
-    files.push(crontabPath);
-  }
-
-  const entries = [];
-  for (const file of files) {
-    const text = await fsp.readFile(file, 'utf8');
-    for (const entry of parseCrontab(text, scriptName)) {
-      entries.push({ ...entry, file });
-    }
-  }
-  return entries;
+  const text = await fsp.readFile(crontabPath, 'utf8');
+  return parseCrontab(text, scriptName).map((entry) => ({ ...entry, file: crontabPath }));
 }
 
 module.exports = { tokenize, parseCrontab, readBackupEntries };

@@ -28,7 +28,7 @@ EJS (Server-Side-Rendering, kein SPA), `js-yaml`, `argon2`.
   `compose.yaml`, `compose.yml`, `docker-compose.yaml` oder
   `docker-compose.yml` enthält (Dockge-Layout). Ob der Stack läuft, spielt
   keine Rolle.
-- **Backups:** alle Zeilen in `CRONTAB_PATH` (Datei oder Verzeichnis), die
+- **Backups:** alle Zeilen in der Datei `CRONTAB_PATH`, die
   `BACKUP_SCRIPT_NAME` aufrufen. Das Argument dahinter ist der Stack-Pfad.
   Auskommentierte Zeilen (`#…`) zählen nicht. Funktioniert mit
   User-Crontab-Format und mit `/etc/cron.d`-Format (mit User-Spalte).
@@ -61,8 +61,8 @@ alten Zeilen aus `crontab -e` entfernen.
 Gemountet wird das **ganze Verzeichnis** `/etc/cron.d`, nicht die einzelne
 Datei: Editoren wie vim speichern über eine neue Datei (neuer Inode), und ein
 Bind-Mount auf eine einzelne Datei würde bis zum Container-Neustart den alten
-Inhalt zeigen. Andere Dateien in `/etc/cron.d` stören nicht, es zählen nur
-Zeilen mit dem Backup-Script.
+Inhalt zeigen. Gelesen wird aber nur die Datei `CRON_FILE` — andere Dateien
+in `/etc/cron.d` werden ignoriert, auch wenn sie nur für root lesbar sind.
 
 ## Homepage-Widget
 
@@ -128,8 +128,9 @@ docker exec -it local-backup-tracker node cli.js unlock-admin
 | `PUID` / `PGID` | `1000` / `1000` | User/Group-ID des Node-Prozesses (Dateirechte auf `data/`) |
 | `STACKS_DIR` | `/stacks` | Stacks-Verzeichnis im Container |
 | `HOST_STACKS_DIR` | — | Dasselbe Verzeichnis auf dem Host, so wie es in der Crontab steht. Wird in `docker-compose.yml` auch als Mount-Quelle verwendet |
-| `CRONTAB_PATH` | `/config/cron.d` | Crontab-Datei oder -Verzeichnis im Container |
+| `CRONTAB_PATH` | `/config/cron.d/docker-stack-backup` | Crontab-Datei im Container. In `docker-compose.yml` aus `CRON_FILE` gebildet |
 | `CRON_DIR` | `/etc/cron.d` | Nur `docker-compose.yml`: Host-Verzeichnis, das nach `/config/cron.d` gemountet wird |
+| `CRON_FILE` | `docker-stack-backup` | Nur `docker-compose.yml`: Dateiname der Backup-Crontab in `CRON_DIR` — nur diese Datei wird gelesen |
 | `BACKUP_SCRIPT_NAME` | `docker-stack-backup.sh` | Dateiname des Backup-Scripts in den Cron-Zeilen |
 | `API_KEY` | — | Schlüssel für `/api/status` (z. B. `openssl rand -hex 32`) |
 | `SESSION_SECRET` | *(auto-generiert)* | Optional; sonst einmalig erzeugt und in `data/config.yml` gespeichert |
@@ -147,7 +148,7 @@ docker compose up -d --build
 |---|---|
 | `/app/data` | `admin.yml`, `excluded.yml`, `config.yml` |
 | `/stacks` (ro) | Stacks-Verzeichnis |
-| `/config/cron.d` (ro) | Crontab-Verzeichnis |
+| `/config/cron.d` (ro) | Crontab-Verzeichnis (gelesen wird nur `CRON_FILE`) |
 
 ## Backup
 

@@ -57,4 +57,6 @@ routes with curl.
 `entrypoint.sh` starts as root, creates the PUID/PGID user, chowns only
 `/app/data` (stacks and cron dir are read-only mounts), then `su-exec`s to
 Node. The cron dir is mounted as a directory, not a single file, because
-single-file bind mounts go stale when an editor replaces the file.
+single-file bind mounts go stale when an editor replaces the file — but only
+the one file `CRONTAB_PATH` (built from `CRON_FILE`) is read; other cron.d
+files may be root-only and must not break the read.
